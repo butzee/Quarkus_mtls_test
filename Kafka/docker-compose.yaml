@@ -19,15 +19,15 @@ services:
       #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SSL:SSL, PLAINTEXT:PLAINTEXT
       KAFKA_LISTENERS: SSL://0.0.0.0:9093
       #KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9093
-      KAFKA_SSL_KEYSTORE_LOCATION: /var/private/ssl/kafka-broker.jks
+      KAFKA_SSL_KEYSTORE_LOCATION: /var/private/ssl/kafka-broker.keystore.jks
       KAFKA_SSL_KEYSTORE_PASSWORD: changeit
-      KAFKA_SSL_TRUSTSTORE_LOCATION: /var/private/ssl/kafka-broker-truststore.jks
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /var/private/ssl/truststore.jks
       KAFKA_SSL_TRUSTSTORE_PASSWORD: changeit
       KAFKA_SSL_CLIENT_AUTH: requested
       KAFKA_INTER_BROKER_LISTENER_NAME: SSL
       KAFKA_OPTS: "-Djavax.net.debug=SSL,handshake"
     volumes:
-      - ../Certificates:/var/private/ssl
+      - ../certs:/var/private/ssl
     depends_on:
       - zookeeper
     networks:
