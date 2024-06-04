@@ -81,3 +81,8 @@ docker-compose down -v
 ```
 
 The `-v` flag removes any stopped containers.
+
+## TODO
+
+- [ ] Full Deployment via Docker-Compose
+- [ ] Full Deployment via Helm to Kubernetes
