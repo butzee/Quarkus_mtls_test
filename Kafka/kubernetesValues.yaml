@@ -1,0 +1,14 @@
+listeners:
+  client:
+    protocol: SSL
+    sslClientAuth: "required"
+
+tls:
+  type: JKS
+  existingSecret: "certs-kafka"
+  passwordsSecretKeystoreKey: keystore-password
+  passwordsSecretTruststoreKey: truststore-password
+  keystorePassword: "changeit"
+  truststorePassword: "changeit"
+  jksKeystoreKey: "kafka.keystore.jks"
+  jksTruststoreKey: "kafka.truststore.jks"

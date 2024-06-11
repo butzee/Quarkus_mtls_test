@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+  zookeeper:
+    image: zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka-net
+
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9093:9093"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      #KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: SSL://localhost:9093
+      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SSL:SSL, PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENERS: SSL://0.0.0.0:9093
+      #KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9093
+      KAFKA_SSL_KEYSTORE_LOCATION: /var/private/ssl/kafka.keystore.jks
+      KAFKA_SSL_KEYSTORE_PASSWORD: changeit
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /var/private/ssl/kafka.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: changeit
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_OPTS: "-Djavax.net.debug=SSL,handshake"
+    volumes:
+      - ../certs:/var/private/ssl
+    depends_on:
+      - zookeeper
+    networks:
+      - kafka-net
+
+networks:
+  kafka-net:
+    driver: bridge
