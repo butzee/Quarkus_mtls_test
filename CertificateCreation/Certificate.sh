@@ -13,6 +13,7 @@ declare -A services=(
     ["kafka"]="kafka.default.svc.cluster.local,DNS:kafka-controller-0.kafka-controller-headless.default.svc.cluster.local,DNS:kafka-controller-1.kafka-controller-headless.default.svc.cluster.local,DNS:kafka-controller-2.kafka-controller-headless.default.svc.cluster.local,DNS:localhost"
     ["microservice-a"]="microservice-a.default.svc.cluster.local, DNS:localhost"
     ["microservice-b"]="microservice-b.default.svc.cluster.local, DNS:localhost"
+    ["microservice-c"]="microservice-c.default.svc.cluster.local, DNS:localhost"
 )
 
 # Ausgabeverzeichnis vorbereiten
@@ -31,6 +32,8 @@ create_keystore_and_truststore() {
     local truststore_path="$output_dir/$service.truststore.jks"
     local csr_path="$output_dir/$service.csr"
     local signed_crt_path="$output_dir/$service-signed.crt"
+    local pem_path="$output_dir/$service.pem"
+    local key_path="$output_dir/$service.key"
 
     echo "Creating keystore and truststore for $service..."
     echo "subjectAltName=DNS:${service_san}"
@@ -60,10 +63,19 @@ create_keystore_and_truststore() {
     keytool -importcert -alias CA -file "$ca_cert" -keystore "$truststore_path" -storepass $password -noprompt
     echo "Truststore created."
 
+    # Generate PEM and .key for microservice-c if applicable
+    if [ "$service" == "microservice-c" ]; then
+        echo "Exporting certificate to PEM format for $service..."
+        openssl pkcs12 -in "$keystore_path" -out "$pem_path" -passin pass:$password -passout pass:$password -nokeys
+        echo "PEM file exported."
+        echo "Exporting private key for $service..."
+        openssl pkcs12 -in "$keystore_path" -out "$key_path" -passin pass:$password -passout pass:$password -nocerts
+        echo "Private key exported."
+    fi
+
     # Remove temporary files
     rm "$csr_path" "$signed_crt_path"
 }
-
 
 
 # Zertifikate und Stores für jeden Dienst erstellen

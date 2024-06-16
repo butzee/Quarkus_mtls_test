@@ -37,7 +37,7 @@ if ($userChoice -eq "1") {
     Set-Location -Path $PSScriptRoot
     # Deploy Kafka in Docker Container
     Write-Host "Deploying Kafka in Docker Container..."
-    docker-compose -f Kafka/docker-compose-kafka.yml up -d
+    docker-compose -f Kafka/docker-compose-kafka.yaml up -d
 
     # Deploy Microservices via Quarkus dev locally
     Write-Host "Now open a new terminal and navigate to the 'microservice-a' directory."
@@ -54,7 +54,7 @@ if ($userChoice -eq "1") {
     # Wait till user presses a key to shutdown the Kafka container
     Write-Host "Press any key to shutdown the Kafka container..."
     $x = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-    docker-compose -f Kafka/docker-compose-kafka.yml down -v
+    docker-compose -f Kafka/docker-compose-kafka.yaml down -v
 }
 elseif ($userChoice -eq "2") {
     # Action for Option 2
