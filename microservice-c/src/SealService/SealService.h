@@ -9,6 +9,7 @@ class SealService {
 public:
     SealService();
     std::string transformMessage(const std::string& msg);
+    std::string transformMessage(const std::vector<double>& input_data);
 
 private:
     seal::SEALContext setupContext();

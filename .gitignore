@@ -1,3 +1,10 @@
 /.vscode
 /certs
 *.tgz
+
+/microservice-c/win32
+/microservice-c/KafkaLib
+/microservice-c/SealLib
+/microservice-c/src/myapp
+
+*.DAT

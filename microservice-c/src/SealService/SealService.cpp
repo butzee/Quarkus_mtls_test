@@ -1,5 +1,6 @@
 #include <seal/seal.h>
 #include "../nlohmann/json.hpp"
+#include "../base64/base64.hpp"
 #include "SealService.h"
 
 #include <algorithm>
@@ -17,6 +18,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <fstream>
 
 using std::vector;
 using std::cout;
@@ -73,8 +75,57 @@ double SealService::calculate_premium(const vector<double>& input_data, const ve
     return decoded_result[0];
 }
 
+std::string SealService::transformMessage(const std::vector<double>& input_data) {
+    std::cout << "Received data: ";
+    EncryptionParameters parms(scheme_type::ckks);
+    size_t poly_modulus_degree = 8192;
+    parms.set_poly_modulus_degree(poly_modulus_degree);
+    parms.set_coeff_modulus(CoeffModulus::Create(poly_modulus_degree, { 60, 40, 40, 60 }));
+    
+    SEALContext context(parms);
+    
+    // Saving parameters
+    std::stringstream parms_stream;
+    auto size = parms.save(parms_stream);
+    vector<seal_byte> byte_buffer(static_cast<size_t>(parms.save_size()));
+    parms.save(reinterpret_cast<seal_byte *>(byte_buffer.data()), byte_buffer.size());
+    std::ofstream parms_file("parms.DAT");
+    parms_file << parms_stream.str();
+    parms_file.close();
+
+    // Loading parameters
+    std::ifstream parms_file2("parms.DAT");
+    if (!parms_file2.is_open()) {
+        throw invalid_argument("Cannot open file 'parms.DAT'");
+    }
+    std::stringstream buffer;
+    buffer << parms_file2.rdbuf();
+    std::string base64_data = base64::to_base64(buffer.str());
+    buffer.clear();
+
+
+    std::string decoded_data = base64::from_base64(base64_data);
+    buffer.str(decoded_data);
+
+    EncryptionParameters parms2(scheme_type::ckks);
+    try {
+        parms2.load(buffer);
+    } catch (const std::exception& e) {
+        throw invalid_argument("Error loading parameters: " + std::string(e.what()));
+    }
+
+    SEALContext context2(parms2);
+
+
+    vector<double> pricing_factors = {25, 0.02, 100, 500}; // Per year, per kilometer, per accident, basic premium
+
+    double premium = calculate_premium(input_data, pricing_factors, context2);
+
+    // Return the sum as a string
+    return std::to_string(premium);
+}
+
 std::string SealService::transformMessage(const std::string& msg) {
-    // Parse the JSON message
     auto json = nlohmann::json::parse(msg);
     vector<double> input_data = json["data"].get<vector<double>>(); // Car age, Kilometers driven, Accidents, Base Factor
 
@@ -83,7 +134,7 @@ std::string SealService::transformMessage(const std::string& msg) {
     parms.set_poly_modulus_degree(poly_modulus_degree);
     parms.set_coeff_modulus(CoeffModulus::Create(poly_modulus_degree, { 60, 40, 40, 60 }));
     SEALContext context(parms);
-
+    
     vector<double> pricing_factors = {25, 0.02, 100, 500}; // Per year, per kilometer, per accident, basic premium
 
     double premium = calculate_premium(input_data, pricing_factors, context);
