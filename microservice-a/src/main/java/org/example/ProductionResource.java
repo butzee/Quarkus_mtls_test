@@ -16,7 +16,9 @@ public class ProductionResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String hello() {
+        System.out.println("Sending price data");
         PriceData priceData = new PriceData(List.of(2.0, 100.0, 2.0, 1.0));
+        System.out.println("Price data: " + priceData);
         priceProducer.sendPrice(priceData);
         return "Hello from Quarkus REST";
     }

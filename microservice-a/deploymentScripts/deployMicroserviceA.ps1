@@ -1,5 +1,4 @@
-$microserviceAhelmPackagepath = Join-Path -Path $PSScriptRoot -ChildPath "../helmPackage"
-Set-Location -Path $microserviceAhelmPackagepath
+Set-Location -Path $PSScriptRoot
 
 Write-Host ""
 Write-Host " ############################################################## "
