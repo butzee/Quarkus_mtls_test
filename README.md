@@ -22,3 +22,5 @@ The project consists of two services:
 
 Both services are implemented with Quarkus and communicate with each other via Apache Kafka. The communication is secured with mTLS encryption.
 More Information about the services can be found in the respective README.md files in the service directories.
+
+sed -i -e 's/\r$//' 

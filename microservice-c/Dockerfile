@@ -29,7 +29,7 @@ RUN cd librdkafka && \
     ./configure --install-deps && \
     make && \
     make install && \
-    cp -r win32 ./../libs && \
+    cp -r win32 ./../libs/libs && \
     cp /usr/local/lib/librd* ../libs/KafkaLib/lib/. && \
     cp /usr/local/include/librdkafka/* ../libs/KafkaLib/include/. && \
     cd .. && \
@@ -44,10 +44,10 @@ COPY certs/ ./certs
 #-I Directory wo nach header-Dateien gesucht wird
 #-L Directory wo nach Bibliotheken gesucht wird
 
-RUN cd src && g++ -std=c++17 -o microservice main.cpp consumer/consumer.cpp producer/producer.cpp SealService/SealService.cpp \
--I./consumer -I./producer -I./SealService -I./properties -I/nlohmann \
--I../libs/KafkaLib/include -L../libs/KafkaLib/lib -lrdkafka++ \
--I../libs/SealLib/include/SEAL-4.1 -L../libs/SealLib/lib -lseal-4.1 -lssl -lcrypto -lm -Wl,-rpath,../KafkaLib/lib
+RUN cd src && g++ -std=c++17 -o myapp main.cpp consumer/consumer.cpp producer/producer.cpp SealService/SealService.cpp SealData/SealData.cpp \
+    -I./consumer -I./producer -I./SealService -I./properties -I./nlohmann -I./base64 -I./SealData \
+    -I../libs/KafkaLib/include -L../libs/KafkaLib/lib -lrdkafka++ \
+    -I../libs/SealLib/include/SEAL-4.1 -L../libs/SealLib/lib -lseal-4.1 -lssl -lcrypto -lm -Wl,-rpath,../libs/KafkaLib/lib
 
 # Run the executable
-CMD ["./src/microservice"]
+CMD ["./src/myapp"]

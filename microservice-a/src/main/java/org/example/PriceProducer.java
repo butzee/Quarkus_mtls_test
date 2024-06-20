@@ -17,15 +17,11 @@ public class PriceProducer {
     
     private Jsonb jsonb = JsonbBuilder.create(new JsonbConfig().withFormatting(true));
 
-    public void sendPrice(PriceData priceData) {
-        System.out.println("Sending Price data 2");
+    public void sendPrice(SealData sealData) {
         if (priceEmitter != null) {
-            System.out.println("priceEmitter is not null");
-            System.out.println("Price data: " + priceData); 
-            System.out.println("Price data contents: " + priceData.getData());
-            String jsonPrice = jsonb.toJson(priceData);
-            System.out.println("Serialized JSON: " + jsonPrice);
-            priceEmitter.send(jsonPrice);
+            System.out.println("Seal data contents: " + sealData.toString());
+            String jsonSealData = jsonb.toJson(sealData);
+            priceEmitter.send(jsonSealData);
         } else {
             System.err.println("priceEmitter is null");
         }

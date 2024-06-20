@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "microservice-c.fullname" . }}
+  name: {{ include "microservice-d.fullname" . }}
   labels:
-    {{- include "microservice-c.labels" . | nindent 4 }}
+    {{- include "microservice-d.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "microservice-c.selectorLabels" . | nindent 4 }}
+    {{- include "microservice-d.selectorLabels" . | nindent 4 }}

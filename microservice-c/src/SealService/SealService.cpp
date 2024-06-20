@@ -1,6 +1,7 @@
 #include <seal/seal.h>
 #include "../nlohmann/json.hpp"
 #include "../base64/base64.hpp"
+#include "../SealData/SealData.h"
 #include "SealService.h"
 
 #include <algorithm>
@@ -75,13 +76,64 @@ double SealService::calculate_premium(const vector<double>& input_data, const ve
     return decoded_result[0];
 }
 
+std::string SealService::consumeSealData(const SealData& data) {
+    std::cout << "Received SealData: ";
+    std::string decoded_parametes = base64::from_base64(data.parameters);
+    std::stringstream buffer;
+    buffer.str(decoded_parametes);
+
+    EncryptionParameters parms(scheme_type::ckks);
+    try {
+        parms.load(buffer);
+    } catch (const std::exception& e) {
+        throw invalid_argument("Error loading parameters: " + std::string(e.what()));
+    }
+    SEALContext context(parms);
+
+    std::string decoded_relin_keys = base64::from_base64(data.relinKeys);
+    buffer.str(decoded_relin_keys);
+    RelinKeys relin_keys;
+    relin_keys.load(context, buffer);
+
+    std::string decoded_galois_keys = base64::from_base64(data.galoisKeys);
+    buffer.str(decoded_galois_keys);
+    GaloisKeys gal_keys;
+    gal_keys.load(context, buffer);
+
+    std::string decoded_encrypted_input = base64::from_base64(data.encryptedInput);
+    buffer.str(decoded_encrypted_input);
+    Ciphertext encrypted_input;
+    encrypted_input.load(context, buffer);
+    
+    std::string decoded_encrypted_pricing = base64::from_base64(data.encryptedPricing);
+    buffer.str(decoded_encrypted_pricing);
+    Ciphertext encrypted_pricing;
+    encrypted_pricing.load(context, buffer);
+
+    Evaluator evaluator(context);
+    Ciphertext multiplied;
+    evaluator.multiply(encrypted_input, encrypted_pricing, multiplied);
+    evaluator.relinearize_inplace(multiplied, relin_keys);
+    
+    // Sum up the rotated vectors
+    vector<Ciphertext> rotations(4);
+    for(int i = 0; i < 4; ++i) {
+        evaluator.rotate_vector(multiplied, i, gal_keys, rotations[i]);
+    }
+    Ciphertext result;
+    evaluator.add_many(rotations, result);
+
+    return "Maybe worked";
+}
+
+
 std::string SealService::transformMessage(const std::vector<double>& input_data) {
+    std::stringstream buffer;
     std::cout << "Received data: ";
     EncryptionParameters parms(scheme_type::ckks);
     size_t poly_modulus_degree = 8192;
     parms.set_poly_modulus_degree(poly_modulus_degree);
     parms.set_coeff_modulus(CoeffModulus::Create(poly_modulus_degree, { 60, 40, 40, 60 }));
-    
     SEALContext context(parms);
     
     // Saving parameters
@@ -98,11 +150,10 @@ std::string SealService::transformMessage(const std::vector<double>& input_data)
     if (!parms_file2.is_open()) {
         throw invalid_argument("Cannot open file 'parms.DAT'");
     }
-    std::stringstream buffer;
-    buffer << parms_file2.rdbuf();
-    std::string base64_data = base64::to_base64(buffer.str());
-    buffer.clear();
-
+    std::stringstream bufferParms;
+    bufferParms << parms_file2.rdbuf();
+    std::string base64_data = base64::to_base64(bufferParms.str());
+    bufferParms.clear();
 
     std::string decoded_data = base64::from_base64(base64_data);
     buffer.str(decoded_data);

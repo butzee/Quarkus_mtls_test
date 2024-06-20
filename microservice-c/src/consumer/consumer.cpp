@@ -1,5 +1,7 @@
 #include "consumer.h"
 #include <iostream>
+#include <SealData.h>
+#include <json.hpp>
 
 Consumer::Consumer() {
     std::string errstr;
@@ -13,6 +15,7 @@ Consumer::Consumer() {
     conf->set("ssl.key.password", key_password, errstr);
     conf->set("group.id", "exampleGroup", errstr);
     conf->set("auto.offset.reset", "earliest", errstr);
+    conf->set("fetch.message.max.bytes", "67108864", errstr);
 
     consumer = RdKafka::Consumer::create(conf, errstr);
     if (!consumer) {
@@ -41,13 +44,16 @@ Consumer::~Consumer() {
     delete conf;
 }
 
+
 void Consumer::consumeMessage(Producer& producer) {
     while (true) {
         RdKafka::Message *msg = consumer->consume(topic, partition, 1000);
         if (msg->err() == RdKafka::ERR_NO_ERROR) {
             try {
+                std::cout << "Received message! "<< std::endl;
                 std::string payload = std::string(static_cast<const char *>(msg->payload()), msg->len());
-                std::string transformedMessage = sealService.transformMessage(payload);
+                SealData data = SealData::fromJson(payload);  // Deserialize JSON to SealData object
+                std::string transformedMessage = sealService.consumeSealData(data);
                 producer.sendMessage(transformedMessage);
                 std::cout << "Received and transformed message: " << transformedMessage << std::endl;
             } catch (const std::exception& e) {

@@ -4,12 +4,14 @@
 #include <seal/seal.h>
 #include <string>
 #include <vector>
+#include <SealData.h>
 
 class SealService {
 public:
     SealService();
     std::string transformMessage(const std::string& msg);
     std::string transformMessage(const std::vector<double>& input_data);
+    std::string consumeSealData(const SealData& data);
 
 private:
     seal::SEALContext setupContext();

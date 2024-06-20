@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "microservice-c.fullname" . }}
+  name: {{ include "microservice-d.fullname" . }}
   labels:
-    {{- include "microservice-c.labels" . | nindent 4 }}
+    {{- include "microservice-d.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "microservice-c.fullname" . }}
+    name: {{ include "microservice-d.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:
