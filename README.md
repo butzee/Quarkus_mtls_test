@@ -82,4 +82,4 @@ Execute the following PowerShell script to manage and execute the project:
 Start-ContainerOrCluster.ps1
 ```
 
-This script manages prerequisites, infrastructure, and microservices. It creates certificates, libraries, a Kubernetes cluster, a local Docker registry, and deploys Kafka and microservices to the cluster.
+This script manages the project fully. Start it and beginn with "Get Information about the Project and Prerequisites".

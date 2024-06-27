@@ -271,7 +271,7 @@ function Invoke-Infos-Master {
     do {
         Show-Menu -menuTitle "Select one of the following options:" -options @(
             "Show Prerequisites",
-            "Show Project Explaining",
+            "Show Project Informations",
             "Execute everything automatically and pray that everything works fine (not recommended)", 
             "Back to Main Menu"
         )
@@ -352,6 +352,7 @@ function Remove-CreatedResources {
     Remove-Item -Path "microservice-b\helmPackage\*" -Recurse -Force
     Remove-Item -Path "microservice-c\helmPackage\*" -Recurse -Force
     Remove-Item -Path "microservice-d\helmPackage\*" -Recurse -Force
+    Remove-Item -Path "Kafka\helmPackage\*" -Recurse -Force
 
     Write-Host "Deleting Docker Images..."
     # Get all Docker images
