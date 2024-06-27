@@ -40,20 +40,31 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          env:
+            - name: KAFKA_SSL_TRUSTSTORE_PASSWORD
+              value: {{ .Values.kafka.truststorePassword }}
+            - name: KAFKA_SSL_KEYSTORE_PASSWORD
+              value: {{ .Values.kafka.keystorePassword }}
+          volumeMounts:
+            - name: certs-microservice-c
+              mountPath: {{ .Values.kafka.certsMountPath }}
+              readOnly: true
+            {{- with .Values.volumeMounts }}
+            {{ toYaml . | nindent 12 }}
+            {{- end }}
           livenessProbe:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
       volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        - name: certs-microservice-c
+          secret:
+            secretName: {{ .Values.kafka.certsSecretName }}
+        {{- with .Values.volumes }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

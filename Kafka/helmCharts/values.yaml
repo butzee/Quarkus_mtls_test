@@ -1,0 +1,38 @@
+kafka:
+  image: wurstmeister/kafka
+  replicas: 1
+  ports:
+    - name: kafka
+      port: 9092
+      protocol: TCP
+  env:
+    KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-broker:9092"
+    KAFKA_ADVERTISED_LISTENERS: "SSL://kafka-broker:9092"
+    KAFKA_INTER_BROKER_LISTENER_NAME: "SSL"
+    KAFKA_LISTENERS: "SSL://0.0.0.0:9092"
+    KAFKA_MAX_REQUEST_SIZE: "50000000"
+    KAFKA_MESSAGE_MAX_BYTES: "50000000"
+    KAFKA_OPTS: "-Djavax.net.debug=SSL,handshake"
+    KAFKA_REPLICA_FETCH_MAX_BYTES: "50000000"
+    KAFKA_SSL_CLIENT_AUTH: "required"
+    KAFKA_SSL_KEYSTORE_LOCATION: "/etc/certs/kafka.keystore.jks"
+    KAFKA_SSL_KEYSTORE_PASSWORD: "changeit"
+    KAFKA_SSL_TRUSTSTORE_LOCATION: "/etc/certs/kafka.truststore.jks"
+    KAFKA_SSL_TRUSTSTORE_PASSWORD: "changeit"
+    KAFKA_ZOOKEEPER_CONNECT: "zookeeper-service:2181"
+
+zookeeper:
+  image: zookeeper
+  replicas: 1
+  ports:
+    - name: zookeeper
+      port: 2181
+      protocol: TCP
+
+certificates:
+  truststorePassword: changeit
+  keystorePassword: changeit
+  certsSecretName: certs-kafka
+  certsMountPath: /etc/certs
+  truststoreFilename: kafka.truststore.jks
+  keystoreFilename: kafka.keystore.jks

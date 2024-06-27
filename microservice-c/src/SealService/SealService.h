@@ -5,17 +5,20 @@
 #include <string>
 #include <vector>
 #include <SealData.h>
+#include <ResultData.h>
+
+#include "../nlohmann/json.hpp"
+using json = nlohmann::json;
 
 class SealService {
 public:
     SealService();
-    std::string transformMessage(const std::string& msg);
-    std::string transformMessage(const std::vector<double>& input_data);
-    std::string consumeSealData(const SealData& data);
+    ResultData consumeSealData(const SealData& data);
 
 private:
     seal::SEALContext setupContext();
     double calculate_premium(const std::vector<double>& input_data, const std::vector<double>& pricing_factors, seal::SEALContext& context);
+    void save_to_json(const json& j, const std::string& filename);
 };
 
 #endif // SEAL_SERVICE_H

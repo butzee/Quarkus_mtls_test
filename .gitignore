@@ -1,19 +1,8 @@
 /.vscode
-/certs
+/microservice-needed-files/libs/*
+/microservice-needed-files/certs/*
 *.tgz
 
-/microservice-c/win32
-/microservice-c/KafkaLib
-/microservice-c/SealLib
-/microservice-d/win32
-/microservice-d/KafkaLib
-/microservice-d/SealLib
-/microservice-d/CurlLib
-/microservice-c/src/myapp
+output/*
 
-*.DAT
-*.jks
-*.p12
-*.pem
-*.key
-*.crt
+/microservice-d/SealLib

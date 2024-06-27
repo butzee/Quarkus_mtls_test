@@ -1,13 +1,19 @@
-# Default values for microservice-d.
+# Default values for microservice-c.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
 
 image:
-  repository: "localhost:5000/microservice-d"
+  repository: "localhost:5000/microservice-c"
   tag: "latest"
   pullPolicy: "Always"
+
+kafka:
+  truststorePassword: changeit
+  keystorePassword: changeit
+  certsSecretName: certs-microservice-c
+  certsMountPath: /etc/certs
 
 imagePullSecrets: []
 nameOverride: ""

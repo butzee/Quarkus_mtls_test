@@ -14,11 +14,14 @@ public class SealData {
     @JsonbProperty("GaloisKeys")
     private String galoisKeys;
 
-    @JsonbProperty("EncryptedInput")
+    @JsonbProperty("Encryptedinput")
     private String encryptedInput;
 
-    @JsonbProperty("EncryptedPricing")
+    @JsonbProperty("Encryptedpricing")
     private String encryptedPricing;
+
+    @JsonbProperty("UniqueId")
+    private String uniqueId;
 
 
     public SealData() {
@@ -28,12 +31,13 @@ public class SealData {
         this.parameters = parameters;
     }
 
-    public SealData(String parameters, String relinKeys, String galoisKeys, String encryptedInput, String encryptedPricing) {
+    public SealData(String parameters, String relinKeys, String galoisKeys, String encryptedInput, String encryptedPricing, String uniqueId) {
         this.parameters = parameters;
         this.relinKeys = relinKeys;
         this.galoisKeys = galoisKeys;
         this.encryptedInput = encryptedInput;
         this.encryptedPricing = encryptedPricing;
+        this.uniqueId = uniqueId;
     }
 
     public String getParameters() {
@@ -76,6 +80,13 @@ public class SealData {
         this.encryptedPricing = encryptedPricing;
     }
 
+    public String getUniqueId() {
+        return uniqueId;
+    }
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
+    }
+
     public void get (String data) {
         this.parameters = data;
     }
@@ -84,12 +95,12 @@ public class SealData {
     //only first 15 characters of each field are printed
     public String toString() {
         return "SealData{" +
-            "parameters='" + parameters.substring(0, Math.min(parameters.length(), 15)) + '\'' +
+            "uniqueId='" + parameters + '\'' +
+            ", parameters='" + parameters.substring(0, Math.min(parameters.length(), 15)) + '\'' +
             ", relinKeys='" + relinKeys.substring(0, Math.min(relinKeys.length(), 15)) + '\'' +
             ", galoisKeys='" + galoisKeys.substring(0, Math.min(galoisKeys.length(), 15)) + '\'' +
             ", encryptedInput='" + encryptedInput.substring(0, Math.min(encryptedInput.length(), 15)) + '\'' +
             ", encryptedPricing='" + encryptedPricing.substring(0, Math.min(encryptedPricing.length(), 15)) + '\'' +
             '}';
-
         }
 }

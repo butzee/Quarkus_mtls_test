@@ -1,19 +1,29 @@
 #include <iostream>
 #include <thread>
-#include "producer/producer.h"
-#include "consumer/consumer.h"
+#include <config.h>
+#include <producer.h>
+#include <consumer.h>
+#include <fstream>
+#include <chrono>
+#include <thread>
 
-int main() {
+bool file_exists(const std::string& name) {
+    std::ifstream f(name.c_str());
+    return f.good();
+}
+
+int main(int argc, char* argv[]) {
+    std::string environment = "local";
+    if (argc > 1) {
+        std::cout << "Environment: " << argv[1] << std::endl;
+        environment = argv[1];
+    }
+
+    MicroserviceConfig::configureEnvironment(environment);
+
     Producer producer;
     Consumer consumer;
 
     consumer.consumeMessage(producer);
-
-    //SealService sealService;
-    // {"data": [1.0, 2.0, 3.0, 4.0]}
-    //std::vector<double> input_data = {1.0, 2.0, 3.0, 4.0};
-    //std::string premium = sealService.transformMessage(input_data);
-
-    //std::cout <<"Premium: " + premium + "\n" << "Shutting down.\n";
     return 0;
 }

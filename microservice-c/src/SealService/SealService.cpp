@@ -1,8 +1,7 @@
 #include <seal/seal.h>
-#include "../nlohmann/json.hpp"
-#include "../base64/base64.hpp"
-#include "../SealData/SealData.h"
-#include "SealService.h"
+#include <json.hpp>
+#include <base64.hpp>
+#include <SealService.h>
 
 #include <algorithm>
 #include <chrono>
@@ -16,16 +15,12 @@
 #include <numeric>
 #include <random>
 #include <sstream>
-#include <string>
 #include <thread>
-#include <vector>
-#include <fstream>
 
-using std::vector;
-using std::cout;
-using std::endl;
-using std::invalid_argument;
+using namespace std;
 using namespace seal;
+using json = nlohmann::json;
+
 
 SealService::SealService() {
     // Initialization code here, if any
@@ -76,36 +71,49 @@ double SealService::calculate_premium(const vector<double>& input_data, const ve
     return decoded_result[0];
 }
 
-std::string SealService::consumeSealData(const SealData& data) {
-    std::cout << "Received SealData: ";
-    std::string decoded_parametes = base64::from_base64(data.parameters);
-    std::stringstream buffer;
+void SealService::save_to_json(const json& j, const string& filename) {
+    cout << ">>>> Seal Service: Saving JSON to file...\n";
+    const char *path="output/";
+    string file_path = path + filename;
+    // Save the JSON to a file in specific folder
+    ofstream file(file_path);
+    if (!file.is_open()) {
+        cerr << "Error: Unable to open file " << filename << endl;
+        return;
+    }
+    file << setw(4) << j;
+}
+
+ResultData SealService::consumeSealData(const SealData& data) {
+    cout << "Received SealData: ";
+    string decoded_parametes = base64::from_base64(data.parameters);
+    stringstream buffer;
     buffer.str(decoded_parametes);
 
     EncryptionParameters parms(scheme_type::ckks);
     try {
         parms.load(buffer);
-    } catch (const std::exception& e) {
-        throw invalid_argument("Error loading parameters: " + std::string(e.what()));
+    } catch (const exception& e) {
+        throw invalid_argument("Error loading parameters: " + string(e.what()));
     }
     SEALContext context(parms);
 
-    std::string decoded_relin_keys = base64::from_base64(data.relinKeys);
+    string decoded_relin_keys = base64::from_base64(data.relinKeys);
     buffer.str(decoded_relin_keys);
     RelinKeys relin_keys;
     relin_keys.load(context, buffer);
 
-    std::string decoded_galois_keys = base64::from_base64(data.galoisKeys);
+    string decoded_galois_keys = base64::from_base64(data.galoisKeys);
     buffer.str(decoded_galois_keys);
     GaloisKeys gal_keys;
     gal_keys.load(context, buffer);
 
-    std::string decoded_encrypted_input = base64::from_base64(data.encryptedInput);
+    string decoded_encrypted_input = base64::from_base64(data.encryptedInput);
     buffer.str(decoded_encrypted_input);
     Ciphertext encrypted_input;
     encrypted_input.load(context, buffer);
     
-    std::string decoded_encrypted_pricing = base64::from_base64(data.encryptedPricing);
+    string decoded_encrypted_pricing = base64::from_base64(data.encryptedPricing);
     buffer.str(decoded_encrypted_pricing);
     Ciphertext encrypted_pricing;
     encrypted_pricing.load(context, buffer);
@@ -123,73 +131,17 @@ std::string SealService::consumeSealData(const SealData& data) {
     Ciphertext result;
     evaluator.add_many(rotations, result);
 
-    return "Maybe worked";
-}
+    stringstream encrypted_result_stream;
+    result.save(encrypted_result_stream);
 
+    json j;
+    j["EncryptedResult"] = base64::to_base64(encrypted_result_stream.str());
+    save_to_json(j, "EncryptedResult.json");
 
-std::string SealService::transformMessage(const std::vector<double>& input_data) {
-    std::stringstream buffer;
-    std::cout << "Received data: ";
-    EncryptionParameters parms(scheme_type::ckks);
-    size_t poly_modulus_degree = 8192;
-    parms.set_poly_modulus_degree(poly_modulus_degree);
-    parms.set_coeff_modulus(CoeffModulus::Create(poly_modulus_degree, { 60, 40, 40, 60 }));
-    SEALContext context(parms);
+    // Create a ResultData object with the encrypted result and unique id 
+    ResultData result_data;
+    result_data.encryptedPremium = base64::to_base64(encrypted_result_stream.str());
+    result_data.uniqueId = data.uniqueId;
     
-    // Saving parameters
-    std::stringstream parms_stream;
-    auto size = parms.save(parms_stream);
-    vector<seal_byte> byte_buffer(static_cast<size_t>(parms.save_size()));
-    parms.save(reinterpret_cast<seal_byte *>(byte_buffer.data()), byte_buffer.size());
-    std::ofstream parms_file("parms.DAT");
-    parms_file << parms_stream.str();
-    parms_file.close();
-
-    // Loading parameters
-    std::ifstream parms_file2("parms.DAT");
-    if (!parms_file2.is_open()) {
-        throw invalid_argument("Cannot open file 'parms.DAT'");
-    }
-    std::stringstream bufferParms;
-    bufferParms << parms_file2.rdbuf();
-    std::string base64_data = base64::to_base64(bufferParms.str());
-    bufferParms.clear();
-
-    std::string decoded_data = base64::from_base64(base64_data);
-    buffer.str(decoded_data);
-
-    EncryptionParameters parms2(scheme_type::ckks);
-    try {
-        parms2.load(buffer);
-    } catch (const std::exception& e) {
-        throw invalid_argument("Error loading parameters: " + std::string(e.what()));
-    }
-
-    SEALContext context2(parms2);
-
-
-    vector<double> pricing_factors = {25, 0.02, 100, 500}; // Per year, per kilometer, per accident, basic premium
-
-    double premium = calculate_premium(input_data, pricing_factors, context2);
-
-    // Return the sum as a string
-    return std::to_string(premium);
-}
-
-std::string SealService::transformMessage(const std::string& msg) {
-    auto json = nlohmann::json::parse(msg);
-    vector<double> input_data = json["data"].get<vector<double>>(); // Car age, Kilometers driven, Accidents, Base Factor
-
-    EncryptionParameters parms(scheme_type::ckks);
-    size_t poly_modulus_degree = 8192;
-    parms.set_poly_modulus_degree(poly_modulus_degree);
-    parms.set_coeff_modulus(CoeffModulus::Create(poly_modulus_degree, { 60, 40, 40, 60 }));
-    SEALContext context(parms);
-    
-    vector<double> pricing_factors = {25, 0.02, 100, 500}; // Per year, per kilometer, per accident, basic premium
-
-    double premium = calculate_premium(input_data, pricing_factors, context);
-
-    // Return the sum as a string
-    return std::to_string(premium);
+    return result_data;
 }

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+  labels:
+    app: kafka
+spec:
+  replicas: {{ .Values.kafka.replicas }}
+  selector:
+    matchLabels:
+      app: kafka
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: {{ .Values.kafka.image }}
+          ports:
+            - containerPort: 9092
+              protocol: TCP
+          env:
+            {{- range $key, $value := .Values.kafka.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          volumeMounts:
+            - name: certs-kafka
+              mountPath: {{ .Values.certificates.certsMountPath }}
+              readOnly: true
+      volumes:
+        - name: certs-kafka
+          secret:
+            secretName: {{ .Values.certificates.certsSecretName }}

@@ -1,64 +1,91 @@
 #include <fstream>
 #include <thread>
-#include "SealService/SealService.h"
-#include "WebRequestService/WebRequestService.h"
-#include "nlohmann/json.hpp"
+#include <SealService.h>
+#include <HttpRequestService.h>
+#include <json.hpp>
 
 using json = nlohmann::json;
+using namespace std;
+
+// Function to get valid double input from user
+double getValidDouble() {
+    double value;
+    while (true) {
+        cin >> value;
+        if (cin.fail()) {
+            cin.clear(); // clear the error flag
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // discard invalid input
+            cout << "Invalid input. Please enter a valid double value: ";
+        } else {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // discard any extra input
+            return value;
+        }
+    }
+}
+
+void showMenu() {
+    cout << "\nInteraktives Menü:\n";
+    cout << "1. Create Context and give Double Values\n";
+    cout << "2. Sende Seal Data zum Cluster...\n";
+    cout << "3. Gebe Unique ID zum entschlüsseln ein...\n";
+    cout << "4. Beenden\n";
+    cout << "Bitte wählen Sie eine Option: ";
+}
 
 int main() {
     SealService sealService;
-    sealService.createKeysAndContext();
-    /*
-    WebRequestService webRequestService;
-    std::string url = "http://127.0.0.1:8080/produce";
+    HttpRequestService httpRequestService;
+    int choice = 0;
+    string unique_id;
 
-    std::ifstream file("base64.txt");
-    if (!file.is_open()) {
-        std::cerr << "Failed to open file.\n";
-        return 1;
-    }
-    std::string line;
-    std::string parameters, relinKeys, galoisKeys, encryptedInput, encryptedPricing;
+    while (true) {
+        showMenu();
+        cin >> choice;
 
-    while (std::getline(file, line)) {
-        line.erase(0, line.find_first_not_of(" \t\r\n"));
-        line.erase(line.find_last_not_of(" \t\r\n") + 1);
+        switch (choice) {
+            case 1: {
+                vector<double> numbers(4);
+                vector<string> names = {"Insurance Level (1-4) - 75€", "vehicle age in years - 50€", "annual mileage in km - 0.01€", "number of accidents - 100€"};
 
-        if (line.empty() || line[0] == '#') {
-            continue;
+                cout << "Please enter the following values:\n";
+
+                for (int i = 0; i < 4; ++i) {
+                    cout << "Enter " << names[i] << ": ";
+                    numbers[i] = getValidDouble();
+                }
+
+                cout << "You entered:\n";
+                for (int i = 0; i < 4; ++i) {
+                    cout << names[i] << ": " << numbers[i] << endl;
+                }
+
+                cout << "Kontext und Keys werden erstellt...\n";
+                sealService.createKeysAndContext(numbers);
+                break;
+            }
+            case 2: {
+                cout << "Sende Seal Date zum Cluster...\n";
+                cout << "Bitte geben Sie die Unique-ID ein: ";
+                cin >> unique_id;
+                httpRequestService.sendSealData(unique_id);
+                break;
+            }
+            case 3: {
+                cout << "Bitte geben Sie die Unique-ID ein: ";
+                cin >> unique_id;
+                map<string, string> encryptedData = httpRequestService.sendRequest(unique_id);
+                if (encryptedData.find("error") != encryptedData.end()) {
+                    cout << "Error: " << encryptedData["error"] << endl;
+                    break;
+                }
+                cout << "Decrypted: " << sealService.decrypt(encryptedData);
+                break;
+            }
+            case 4:
+                cout << "Programm wird beendet...\n";
+                return 0;
+            default:
+                cout << "Ungültige Auswahl! Bitte versuchen Sie es erneut.\n";
         }
-
-        if (line == "Parameters:") {
-            std::getline(file, parameters);
-        } else if (line == "RelinKeys:") {
-            std::getline(file, relinKeys);
-        } else if (line == "Galois Keys:") {
-            std::getline(file, galoisKeys);
-        } else if (line == "Encrypted input") {
-            std::getline(file, encryptedInput);
-        } else if (line == "Encrypted pricing:") {
-            std::getline(file, encryptedPricing);
-        }
     }
-
-    file.close();
-
-    // Create a JSON object
-    json body;
-    body["Parameters"] = parameters;
-    body["RelinKeys"] = relinKeys;
-    body["GaloisKeys"] = galoisKeys;
-    body["EncryptedInput"] = encryptedInput;
-    body["EncryptedPricing"] = encryptedPricing;
-
-    std::string json_body = body.dump();
-    
-    std::string response = webRequestService.send_via_http(url, json_body);
-        // Process the response
-    std::cout << "Response: " << response << std::endl;
-
-    std::cout <<"Shutting down.\n";
-    return 0;
-    */
 }
