@@ -1,0 +1,27 @@
+prometheus:
+  service:
+    nodePort: 30000
+    type: NodePort
+
+grafana:
+  service:
+    nodePort: 31000
+    type: NodePort
+
+alertmanager:
+  service:
+    nodePort: 32000
+    type: NodePort
+
+prometheus-node-exporter:
+  service:
+    nodePort: 32001 
+    type: NodePort
+
+
+prometheus-node-exporter:
+  prometheus:
+    prometheusSpec:
+      additionalScrapeConfigs:
+        name: additional-scrape-configs
+        key: prometheus-additional.yaml

@@ -1,21 +1,14 @@
-# Default values for microservice-a.
+# Default values for grafana.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
 
 image:
-  repository: "localhost:5000/microservice-a"
-  tag: "latest"
-  pullPolicy: "Always"
-
-kafka:
-  truststorePassword: changeit
-  keystorePassword: changeit
-  certsSecretName: certs-microservice-a
-  certsMountPath: /etc/certs
-  truststoreFilename: microservice-a.truststore.jks
-  keystoreFilename: microservice-a.keystore.jks
+  repository: nginx
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
@@ -32,17 +25,8 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-podAnnotations: {
-  "prometheus.io/scrape": "true",
-  "prometheus.io/path": "/metrics",
-  "prometheus.io/port": "8080"
-}
-
-podLabels: {
-  "app.kubernetes.io/name": "microservice-a",
-  "app.kubernetes.io/version": "1.0.0",
-  "app": "microservice-a"
-}
+podAnnotations: {}
+podLabels: {}
 
 podSecurityContext: {}
   # fsGroup: 2000
@@ -56,9 +40,8 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  type: NodePort
-  nodePort: 30950
-  port: 8080
+  type: ClusterIP
+  port: 80
 
 ingress:
   enabled: false
@@ -88,14 +71,14 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
-#livenessProbe: 
-#  httpGet:
-#    path: /
-#    port: http
-#readinessProbe: 
-#  httpGet:
-#    path: /
-#    port: http
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
 
 autoscaling:
   enabled: false

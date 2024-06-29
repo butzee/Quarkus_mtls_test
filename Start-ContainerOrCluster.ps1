@@ -5,7 +5,7 @@
 function New-Certificates {
     Write-Host "Creating Certificates..."
     docker build -t create-certificates -f "CreateCertificates/Dockerfile" .\CreateCertificates\.; 
-    if ($?) { docker run -v "${pwd}\microservice-needed-files\certs:/usr/app/certs" create-certificates}
+    docker run -v "${pwd}\microservice-needed-files\certs:/usr/app/certs" create-certificates;
 }
 
 function New-Libraries {
@@ -25,7 +25,6 @@ function New-Quarkus-Microservice {
     )
 
     Set-Location -Path $microservicePath
-
     Write-Host " Building $imageName as a Native Image..."
     ./mvnw clean install -Pnative --define quarkus.native.container-build=true
 }
@@ -47,7 +46,7 @@ function New-ImageSelectedMicroservices {
     foreach ($id in $serviceIdentifiers) {
         $microservicePath = Join-Path -Path $PSScriptRoot -ChildPath $id
         if (@("microservice-a", "microservice-b") -contains $id) {
-            New-Quarkus-Microservice -microse1rvicePath $microservicePath -imageName $id
+            New-Quarkus-Microservice -microservicePath $microservicePath -imageName $id
             New-DockerImage -microservicePath $microservicePath -dockerfilePath "src/main/docker/Dockerfile.native-micro" -imageName $id 
         } elseif (@("microservice-c") -contains $id) {
             New-DockerImage -microservicePath $microservicePath -dockerfilePath "Dockerfile_Kubernetes" -imageName $id
